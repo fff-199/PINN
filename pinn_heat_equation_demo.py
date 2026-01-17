@@ -237,10 +237,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # 学习率调度器（每2000步衰减）
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2000, gamma=0.5)
 
-# 采样点数量
-N_pde = 10000   # 域内配点
-N_bc = 500      # 边界配点
-N_ic = 500      # 初始条件配点
+# 采样点数量（增大以提高GPU利用率）
+N_pde = 50000   # 域内配点（增加5倍）
+N_bc = 2000     # 边界配点（增加4倍）
+N_ic = 2000     # 初始条件配点（增加4倍）
 
 # 训练参数
 epochs = 10000
