@@ -100,8 +100,9 @@ def boundary_layer_thickness(x, nu_val):
 print("\nTraining PINN for visualization (8000 epochs)...")
 
 model = PINN_FlatPlate([2, 64, 64, 64, 64, 1], C_scale=C_sat).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=8000, eta_min=1e-5)
+# Use SGD with momentum to avoid DirectML CPU fallback (Adam uses lerp internally)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9, nesterov=True)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=8000, eta_min=1e-4)
 
 N_pde = 10000
 N_bc = 1000
@@ -139,8 +140,8 @@ for epoch in range(8000):
     delta_bulk_np = boundary_layer_thickness(x_bc_bulk_np, nu)
     x_bc_bulk = torch.tensor(x_bc_bulk_np, dtype=torch.float32, device=device).view(-1, 1)
     y_bc_bulk = torch.tensor(delta_bulk_np, dtype=torch.float32, device=device).view(-1, 1)
-    # C_infinity increases along x (accumulation effect)
-    C_infinity = C_sat * 0.1 * (x_bc_bulk / L_zone)  # Low but increasing downstream
+    # C_infinity increases along x (accumulation effect) - matches main PINN script
+    C_infinity = C_sat * 0.3 * (x_bc_bulk / L_zone)  # Unified coefficient: 0.3
     
     # === Inlet BC: 1/7 power law profile at x=0.1 ===
     x_inlet = torch.ones((N_bc, 1), device=device) * 0.1

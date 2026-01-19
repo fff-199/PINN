@@ -224,7 +224,8 @@ def train_zone_pinn(T_celsius, epochs=5000):
     
     # Initialize Model
     model = PINN_FlatPlate([2, 64, 64, 64, 64, 1], C_scale=C_sat).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # Disable foreach to prevent DirectML CPU fallback for lerp operation
+    optimizer = optim.Adam(model.parameters(), lr=0.001, foreach=False)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
     
     # Data sizes (Reduced for stability)
